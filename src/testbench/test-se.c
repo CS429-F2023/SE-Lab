@@ -52,7 +52,7 @@ void sigalrm_handler(int signum)
  * on a given test, and collects the results for the caller. 
  * Return 0 if any problems, 1 if OK.
  */
-static int run_test(int A, int B, int C, int d, char *testdir, char *testname, int limit) {
+static int run_test(int wk, int A, int B, int C, int d, char *testdir, char *testname, int limit) {
     int status;
     char cmd[MAX_STR];
     char checkpoint_ref[MAX_STR >> 4];
@@ -73,8 +73,8 @@ static int run_test(int A, int B, int C, int d, char *testdir, char *testname, i
     strcat(testfile, testname);
 
     /* Run the reference emulator */
-    sprintf(cmd, "./bin/se-ref -A %d -B %d -C %d -d %d -l %d -i %s -c %s > /dev/null 2> /dev/null", 
-           A, B, C, d, limit, testfile, checkpoint_ref);
+    sprintf(cmd, "./bin/se-ref-wk%d -A %d -B %d -C %d -d %d -l %d -i %s -c %s > /dev/null 2> /dev/null", 
+           wk, A, B, C, d, limit, testfile, checkpoint_ref);
     status = system(cmd);
     if (status == -1) {
         fprintf(stderr, "Error invoking system() for reference sim: %s\n", 
@@ -184,34 +184,29 @@ int main(int argc, char* argv[]) {
     double score = 0.0;
 
     /* Run week 1 tests. */
-    if (week >= 1) {
+    if (week == 1) {
         if (verbosity > 1) {
             fprintf(stderr, "Running tests for week 1...\n");
         }
-        size_t num_testdirs = 7;
+        size_t num_testdirs = 6;
         size_t total_num_tests = 0;
-        size_t test_sizes[] = {5, 8, 4, 11, 4, 22, 2};
+        size_t test_sizes[] = {5, 8, 4, 11, 3, 7};
         char *testdirs[] = {"testcases/basics/", "testcases/alu/simple/", "testcases/mem/simple/", 
                             "testcases/alu/print_simple/", "testcases/branch/simple/", 
-                            "testcases/exceptions/simple/", "testcases/applications/simple/"};
+                            "testcases/exceptions/simple/"};
         char *test_basic[] = {"basic", "add", "sub", "movz", "movk"};
         char *test_alu[] = {"adds", "subs", "cmp", "ands", "tst", "orr", "eor", "mvn"};
         char *test_mem[] = {"ldur_stur", "adrp", "adrp2", "adrp3"};
         char *test_print_alu[] = {"add", "movk_lsl", "movz_lsl", "adds", "subs", "cmp", 
                                   "ands", "orr", "movk_lsl2", "read_after_write", 
                                   "write_after_read"};
-        char *test_branch[] = {"branch_taken", "branch_not_taken", "bcond", "bl_ret"};
+        char *test_branch[] = {"branch_taken", "branch_not_taken", "bcond"};
         char *test_exception[] = {"non_charm_insn", "ldur", "stur", "bad_insn_1", "bad_insn_2", 
-                                   "bad_insn_3", "bad_insn_4", "bad_mem_1", "bad_mem_2", 
-                                   "bad_mem_3", "bad_mem_4", "bad_mem_5", "bad_mem_6", 
-                                   "bad_mem_7", "bad_mem_8", "bad_mem_9", "bad_mem_10", 
-                                   "bad_mem_11", "bad_mem_12", "bad_mem_13", "bad_mem_14",
-                                   "bad_mem_15"};
-        char *test_apps[] = {"5factorial", "20thfib"};
+                                  "bad_insn_3", "bad_insn_4"};
         char **tests[] = {test_basic, test_alu, test_mem, test_print_alu, 
-                          test_branch, test_exception, test_apps};
+                          test_branch, test_exception};
         int total = 0;
-        double weights[] = {0.05, 0.2, 0.2, 0.1, 0.1, 0.05, 0.3};
+        double weights[] = {0.1, 0.25, 0.25, 0.15, 0.15, 0.1};
         double this_score = 0.0;
         
         for (size_t dirnum = 0; dirnum < num_testdirs; dirnum++) {
@@ -221,7 +216,7 @@ int main(int argc, char* argv[]) {
                 if (verbosity > 1) {
                     fprintf(stderr, "Running %s%s\n", testdirs[dirnum], tests[dirnum][testnum]);
                 }
-                int pass = run_test(-1, -1, -1, -1, testdirs[dirnum], tests[dirnum][testnum], 500);
+                int pass = run_test(1, -1, -1, -1, -1, testdirs[dirnum], tests[dirnum][testnum], 500);
                 passed_this_dir += pass;
                 if (!pass && verbosity > 0) {
                     fprintf(stderr, "Failed test %s%s\n", testdirs[dirnum], tests[dirnum][testnum]);
@@ -232,16 +227,16 @@ int main(int argc, char* argv[]) {
             total += passed_this_dir;
             this_score += (weights[dirnum]*(passed_this_dir/num_tests));
         }
-        if (week > 1) {
-            this_score /= 4;
-        }
+        // if (week > 1) {
+        //     this_score /= 4;
+        // }
         score += this_score;
         if (verbosity > 0) {
             fprintf(stderr, "Total week 1 tests passed: %d of %ld.\n", total, total_num_tests);
         }
     }
     /* Run week 2 tests. */
-    if (week >= 2) {
+    if (week == 2) {
         if (verbosity > 1) {
             fprintf(stderr, "Running tests for week 2...\n");
         }
@@ -275,7 +270,7 @@ int main(int argc, char* argv[]) {
                 if (verbosity > 1) {
                     fprintf(stderr, "Running %s%s\n", testdirs[dirnum], tests[dirnum][testnum]);
                 }
-                int pass = run_test(-1, -1, -1, -1, testdirs[dirnum], tests[dirnum][testnum], 500);
+                int pass = run_test(2, -1, -1, -1, -1, testdirs[dirnum], tests[dirnum][testnum], 500);
                 passed_this_dir += pass;
                 if (!pass && verbosity > 0) {
                     fprintf(stderr, "Failed test %s%s\n", testdirs[dirnum], tests[dirnum][testnum]);
@@ -286,35 +281,34 @@ int main(int argc, char* argv[]) {
             total += passed_this_dir;
             this_score += (weights[dirnum]*(passed_this_dir/num_tests));
         }
-        if (week > 2) {
-            this_score /= 4;
-        }
-        else {
-            this_score *= 0.75;
-        }
+        // if (week > 2) {
+        //     this_score /= 4;
+        // }
+        // else {
+        //     this_score *= 0.75;
+        // }
         score += this_score;
         if (verbosity > 0) {
             fprintf(stderr, "Total week 2 tests passed: %d of %ld.\n", total, total_num_tests);
         }
     }
     /* Run week 4 tests. */
-    if (week >= 4) {
+    if (week == 4) {
         if (verbosity > 1) {
             fprintf(stderr, "Running tests for week 4...\n");
         }
-        size_t num_testdirs = 3;
+        size_t num_testdirs = 2;
         size_t total_num_tests = 0;
-        size_t test_sizes[] = {1, 2, 3};
-        size_t num_cache_configs[] = {4, 4, 1};
-        char *testdirs[] = {"testcases/mem/simple/", "testcases/applications/hard/", "testcases/applications/hard/"};
+        size_t test_sizes[] = {1, 2};
+        size_t num_cache_configs[] = {4, 4};
+        char *testdirs[] = {"testcases/mem/simple/", "testcases/applications/hard/"};
         char *test_simple[] = {"ldur_stur"};
         char *test_sum[] = {"iter_sum", "rec_sum"};
-        char *test_gemm[] = {"gemm_ijk", "gemm_ikj", "gemm_block"};
-        char **tests[] = {test_simple, test_sum, test_gemm};
+        char **tests[] = {test_simple, test_sum};
         int cache_configs[][4] = {{1, 8, 8, 2}, {4, 8, 32, 4}, {1, 32, 64, 8}, {2, 8, 64, 8},
                                   {1, 8, 8, 2}, {4, 8, 32, 4}, {1, 32, 64, 8}, {2, 8, 64, 8},
                                   {4, 32, 512, 100}};
-        double weights[] = {0.2, 0.4, 0.4};        
+        double weights[] = {0.2, 0.8};        
         int total = 0;
         int cachenum = 0;
         double this_score = 0.0;
@@ -329,7 +323,7 @@ int main(int argc, char* argv[]) {
                                 testdirs[dirnum], tests[dirnum][testnum], cache_configs[cachenum][0], cache_configs[cachenum][1], 
                                 cache_configs[cachenum][2], cache_configs[cachenum][3]);
                     }
-                    int pass = run_test(cache_configs[cachenum][0], cache_configs[cachenum][1], 
+                    int pass = run_test(4, cache_configs[cachenum][0], cache_configs[cachenum][1], 
                                                 cache_configs[cachenum][2], cache_configs[cachenum][3],
                                                 testdirs[dirnum], tests[dirnum][testnum], 1 << 26);
                     passed_this_dir += pass;
@@ -343,7 +337,7 @@ int main(int argc, char* argv[]) {
             total += passed_this_dir;
             this_score += (weights[dirnum]*(passed_this_dir/num_tests));
         }
-        this_score /= 2;
+        // this_score /= 2;
         score += this_score;
         if (verbosity > 0) {
             fprintf(stderr, "Total week 4 tests passed: %d of %ld.\n", total, total_num_tests);

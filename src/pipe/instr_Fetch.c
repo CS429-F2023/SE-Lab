@@ -101,18 +101,26 @@ comb_logic_t fetch_instr(f_instr_impl_t *in, d_instr_impl_t *out) {
      * Students: This case is for generating HLT instructions
      * to stop the pipeline. Only write your code in the **else** case. 
      */
-    if (!current_PC) {
+    if (!current_PC || F_in->status == STAT_HLT) {
         out->insnbits = 0xD4400000U;
         out->op = OP_HLT;
         out->print_op = OP_HLT;
         imem_err = false;
     }
     else {
-        
+        // WRITE HERE!   
     }
-    if (out->op == OP_HLT) {
+    
+    // We do not recommend modifying the below code.
+    if (imem_err || out->op == OP_ERROR) {
+        in->status = STAT_INS;
+        F_in->status = in->status;
+    } else if (out->op == OP_HLT) {
         in->status = STAT_HLT;
-        out->status = STAT_HLT;
+        F_in->status = in->status;
+    } else {
+        in->status = STAT_AOK;
     }
+    out->status = in->status;
     return;
 }
