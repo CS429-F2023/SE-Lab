@@ -192,15 +192,15 @@ void test_csim()
     }
 
     /* Display a summary of results */
-    printf("%38s        |%29s\n", "Your simulator", "Reference simulator");
-    printf("%6s%8s%8s%8s%8s%8s|%8s%8s%8s%8s\n", 
+    printf("%41s        |%29s\n", "Your simulator", "Reference simulator");
+    printf("%9s%8s%8s%8s%8s%8s|%8s%8s%8s%8s\n", 
            "Points", "(A,B,C)",
            "Hits", "Misses", "DEvicts", "CEvicts",
            "Hits", "Misses", "DEvicts", "CEvicts");
 
     for (i=0; i < N; i++) {
         sprintf(buf, "(%d,%d,%d)", A[i], B[i], C[i]);
-        printf("%6d%8s", points[i], buf);
+        printf("%6d%11s", points[i], buf);
         printf("%8d%8d%8d%8d|%8d%8d%8d%8d  %s\n", 
                test_hits[i], test_misses[i], test_dirty_evictions[i], test_clean_evictions[i], 
                ref_hits[i], ref_misses[i], ref_dirty_evictions[i],  ref_clean_evictions[i],
